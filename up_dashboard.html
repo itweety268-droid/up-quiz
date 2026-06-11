@@ -136,11 +136,19 @@ body{background:var(--bg);font-family:'IBM Plex Sans Thai',sans-serif;color:var(
 <!-- CONFIRM RESET -->
 <div class="confirm-box" id="confirm-box">
   <div class="confirm-inner">
-    <h3>🗑 Reset ตารางคะแนน?</h3>
-    <p>ข้อมูลคะแนนทั้งหมดจะถูกลบถาวร<br>ไม่สามารถกู้คืนได้</p>
+    <h3>🔐 ใส่รหัสเพื่อ Reset</h3>
+    <p>กรอกรหัสผ่านเพื่อลบข้อมูลคะแนนทั้งหมด</p>
+    <input type="password" id="reset-pwd"
+      placeholder="รหัสผ่าน"
+      style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:700;
+             letter-spacing:4px;text-align:center;padding:12px;border:1.5px solid #C8DEDE;
+             border-radius:10px;outline:none;margin-top:2px;"
+      onkeydown="if(event.key==='Enter')doReset()"
+    />
+    <div id="pwd-err" style="font-size:.8rem;color:#E8400C;min-height:18px;"></div>
     <div class="confirm-btns">
       <button class="btn-cancel" onclick="cancelReset()">ยกเลิก</button>
-      <button class="btn-confirm-del" id="btn-del" onclick="doReset()">ลบทั้งหมด</button>
+      <button class="btn-confirm-del" id="btn-del" onclick="doReset()">ยืนยันลบ</button>
     </div>
   </div>
 </div>
@@ -163,9 +171,20 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ── Reset functions (exposed to window) ──
-window.confirmReset = () => document.getElementById('confirm-box').classList.add('show');
-window.cancelReset  = () => document.getElementById('confirm-box').classList.remove('show');
+window.confirmReset = () => {
+  document.getElementById('reset-pwd').value = '';
+  document.getElementById('pwd-err').textContent = '';
+  document.getElementById('confirm-box').classList.add('show');
+  setTimeout(()=>document.getElementById('reset-pwd').focus(), 100);
+};
+window.cancelReset = () => document.getElementById('confirm-box').classList.remove('show');
 window.doReset = async () => {
+  const pwd = document.getElementById('reset-pwd').value;
+  if(pwd !== '272727'){
+    document.getElementById('pwd-err').textContent = '❌ รหัสผ่านไม่ถูกต้อง';
+    document.getElementById('reset-pwd').focus();
+    return;
+  }
   const btn = document.getElementById('btn-del');
   btn.textContent = 'กำลังลบ...';
   btn.disabled = true;
@@ -175,7 +194,7 @@ window.doReset = async () => {
   } catch(e) {
     alert('เกิดข้อผิดพลาด: ' + e.message);
   }
-  btn.textContent = 'ลบทั้งหมด';
+  btn.textContent = 'ยืนยันลบ';
   btn.disabled = false;
 };
 
