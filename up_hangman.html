@@ -462,12 +462,31 @@ function calcScore(w,l,s){
 async function saveScore(score,timeStr,passed){
   const key=phoneKey(currentUser.phone);
   const entry={
-    name:currentUser.name, phone:currentUser.phone,
-    score, wins, livesLeft:passed?livesLeft:0,
-    time:timeStr, elapsedSec, passed,
-    finishedAt:Date.now()
+    name:currentUser.name,
+    phone:currentUser.phone,
+    score,
+    wins,
+    livesLeft: passed ? livesLeft : 0,
+    time: timeStr,
+    elapsedSec,
+    passed,
+    finishedAt: Date.now()
   };
-  await set(ref(db,'scores/'+key), entry);
+  try{
+    await set(ref(db,'scores/'+key), entry);
+    console.log('✅ saved to Firebase:', key, entry);
+    return true;
+  }catch(e){
+    console.error('❌ Firebase save error:', e);
+    // retry once
+    try{
+      await set(ref(db,'scores/'+key), entry);
+      return true;
+    }catch(e2){
+      alert('บันทึกไม่สำเร็จ: '+e2.message+'\nกรุณาตรวจสอบ Firebase Rules');
+      return false;
+    }
+  }
 }
 
 const SHIELD=`<svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#169b9d"/><stop offset="100%" stop-color="#0fc4c6"/></linearGradient></defs><path d="M60 6 L104 22 L104 64 C104 90 60 118 60 118 C60 118 16 90 16 64 L16 22 Z" fill="url(#sg)" stroke="white" stroke-width="2"/><path d="M60 18 L94 30 L94 64 C94 83 60 104 60 104 C60 104 26 83 26 64 L26 30 Z" fill="none" stroke="white" stroke-width="1.2" opacity="0.4"/><text x="60" y="72" text-anchor="middle" font-size="36" fill="white">⭐</text><text x="60" y="100" text-anchor="middle" font-size="11" fill="white" font-weight="bold" font-family="monospace" letter-spacing="1">UP</text></svg>`;
