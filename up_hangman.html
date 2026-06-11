@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>UP Services Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F2F6F6;--surface:#fff;--ink:#1A1A1A;--dim:#6B7B7B;
+  --border:#C8DEDE;--teal:#169b9d;--teal-lt:#E6F5F5;--teal-bd:#7DCFCF;
+  --orange:#E8400C;--red-bg:#FFF0ED;--red-bd:#f8c4b8;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{background:var(--bg);font-family:'IBM Plex Sans Thai',sans-serif;color:var(--ink);min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:0 0 32px;}
+
+/* LOGIN */
+#login-screen{min-height:100dvh;width:100%;max-width:440px;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;gap:0;}
+.login-logo{width:72px;height:72px;margin:0 auto 20px;background:var(--teal);border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(22,155,157,.32);}
+.login-title{font-size:1.6rem;font-weight:700;color:var(--teal);text-align:center;margin-bottom:4px;}
+.login-sub{font-size:.85rem;color:var(--dim);text-align:center;margin-bottom:28px;}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.login-field label{font-size:.8rem;font-weight:600;color:var(--dim);letter-spacing:.5px;}
+.login-field input{font-family:'IBM Plex Sans Thai',sans-serif;font-size:1rem;font-weight:500;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;transition:border-color .15s;-webkit-appearance:none;}
+.login-field input:focus{border-color:var(--teal);}
+.login-field input::placeholder{color:#b0bec5;}
+.btn-login{margin-top:8px;width:100%;font-family:'IBM Plex Sans Thai',sans-serif;font-size:1rem;font-weight:700;background:var(--teal);color:#fff;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:all .15s;box-shadow:0 2px 12px rgba(22,155,157,.3);-webkit-appearance:none;}
+.btn-login:active{background:#128a8c;transform:scale(.98);}
+.btn-login:disabled{opacity:.6;cursor:default;}
+.login-err{font-size:.82rem;color:var(--orange);text-align:center;margin-top:8px;min-height:20px;}
+.login-err.ok{color:var(--teal);}
+.login-note{font-size:.75rem;color:var(--dim);text-align:center;margin-top:20px;line-height:1.6;}
+
+/* APP */
+#app{display:none;flex-direction:column;width:100%;max-width:480px;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo{width:36px;height:36px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-title{font-size:.85rem;font-weight:700;color:var(--ink);line-height:1.2;}
+.topbar-sub{font-size:.7rem;color:var(--dim);font-weight:400;}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.stat-pill{display:flex;flex-direction:column;align-items:center;background:var(--bg);border-radius:10px;padding:5px 10px;min-width:52px;}
+.stat-pill .sp-val{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:.95rem;color:var(--teal);line-height:1;}
+.stat-pill .sp-lbl{font-size:.62rem;color:var(--dim);font-weight:500;margin-top:2px;}
+
+/* GALLOWS STRIP */
+.gallows-strip{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:14px;}
+.gallows-mini{width:70px;height:78px;flex-shrink:0;}
+.gallows-mini svg{width:100%;height:100%;}
+.strip-right{flex:1;display:flex;flex-direction:column;gap:8px;}
+.hearts-row{display:flex;gap:5px;}
+.heart{font-size:1.2rem;transition:all .25s;line-height:1;}
+.heart.lost{filter:grayscale(1) opacity(.25);transform:scale(.8);}
+.q-counter{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--dim);}
+.q-counter strong{color:var(--teal);font-size:.9rem;}
+.timer-display{font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:700;color:var(--ink);}
+
+/* GAME CONTENT */
+.game-content{padding:16px;display:flex;flex-direction:column;gap:14px;}
+.q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;}
+.q-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--teal);}
+.q-label{font-size:.75rem;font-weight:600;color:var(--teal);letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.q-text{font-size:.95rem;font-weight:500;line-height:1.7;color:var(--ink);}
+
+.choices-list{display:flex;flex-direction:column;gap:8px;}
+.choice-btn{font-family:'IBM Plex Sans Thai',sans-serif;font-size:.9rem;font-weight:500;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;color:var(--ink);transition:all .13s;display:flex;align-items:flex-start;gap:12px;text-align:left;line-height:1.5;width:100%;-webkit-appearance:none;}
+.choice-btn .opt-lbl{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:.9rem;color:var(--teal);flex-shrink:0;padding-top:1px;width:20px;}
+.choice-btn:active:not(:disabled){background:var(--teal-lt);border-color:var(--teal);}
+.choice-btn.correct{background:var(--teal);border-color:var(--teal);color:#fff;pointer-events:none;}
+.choice-btn.correct .opt-lbl{color:#fff;}
+.choice-btn.wrong-choice{background:var(--red-bg);border-color:var(--red-bd);color:var(--orange);pointer-events:none;animation:wshake .35s ease;}
+.choice-btn.wrong-choice .opt-lbl{color:var(--orange);}
+.choice-btn.dimmed{opacity:.2;pointer-events:none;}
+.choice-btn.reveal-correct{background:var(--teal-lt);border-color:var(--teal-bd);color:var(--teal);pointer-events:none;}
+.choice-btn.reveal-correct .opt-lbl{color:var(--teal);}
+@keyframes wshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.answer-reveal{display:none;font-size:.88rem;font-weight:600;color:var(--teal);background:var(--teal-lt);border:1.5px solid var(--teal-bd);border-radius:12px;padding:12px 16px;animation:pop .3s ease;}
+.answer-reveal.show{display:block;}
+@keyframes pop{0%{transform:scale(.9);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+
+/* OVERLAYS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(22,155,157,.07);backdrop-filter:blur(8px);align-items:center;justify-content:center;z-index:200;padding:20px;}
+.overlay.show{display:flex;}
+.overlay-box{background:var(--surface);border-radius:22px;padding:36px 28px;text-align:center;width:100%;max-width:360px;box-shadow:0 16px 48px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;gap:14px;}
+.ov-emoji{font-size:3.2rem;line-height:1;}
+.ov-title{font-size:1.3rem;font-weight:700;}
+.ov-body{font-size:.88rem;color:var(--dim);line-height:1.65;}
+
+/* END SCREEN */
+#end-screen{display:none;flex-direction:column;align-items:center;padding:32px 20px 48px;gap:16px;width:100%;max-width:480px;}
+#end-screen.show{display:flex;}
+.shield-wrap{width:110px;height:110px;}
+.shield-wrap svg{width:100%;height:100%;}
+.end-icon-normal{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0fc4c6);display:flex;align-items:center;justify-content:center;font-size:2.4rem;box-shadow:0 6px 20px rgba(22,155,157,.3);}
+.end-title{font-size:1.5rem;font-weight:700;color:var(--ink);}
+.end-score{font-family:'IBM Plex Mono',monospace;font-size:3rem;font-weight:700;color:var(--teal);line-height:1;}
+.end-fan{font-size:.95rem;font-weight:700;color:var(--teal);background:var(--teal-lt);border:1.5px solid var(--teal-bd);border-radius:12px;padding:14px 18px;line-height:1.7;width:100%;text-align:center;}
+.summary-card{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;gap:11px;}
+.sum-row{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;}
+.sum-row .sl{color:var(--dim);font-weight:500;}
+.sum-row .sv{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink);font-size:.95rem;}
+.sum-div{height:1px;background:var(--border);}
+.pct-wrap{display:flex;flex-direction:column;gap:6px;}
+.pct-top{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--dim);}
+.pct-top span:last-child{color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:.95rem;}
+.pct-track{height:10px;background:var(--border);border-radius:10px;overflow:hidden;}
+.pct-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--teal),#0fc4c6);transition:width .8s ease;width:0%;}
+.done-note{font-size:.82rem;color:var(--dim);text-align:center;line-height:1.6;padding:8px 0;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+      <rect x="9" y="16" width="30" height="24" rx="2" fill="white" opacity="0.15"/>
+      <rect x="9" y="16" width="30" height="24" rx="2" stroke="white" stroke-width="2.2"/>
+      <polyline points="7,17 24,5 41,17" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="19" y="28" width="10" height="12" rx="1.5" fill="white" opacity="0.5"/>
+      <rect x="11" y="20" width="7" height="6" rx="1" fill="white" opacity="0.65"/>
+      <rect x="30" y="20" width="7" height="6" rx="1" fill="white" opacity="0.65"/>
+    </svg>
+  </div>
+  <div class="login-title">9 บริการจาก "UP"</div>
+  <div class="login-sub">Hangman Quiz · FAM's Team</div>
+  <div class="login-field">
+    <label>ชื่อ-นามสกุล</label>
+    <input type="text" id="inp-name" placeholder="กรอกชื่อของคุณ" autocomplete="name" inputmode="text"/>
+  </div>
+  <div class="login-field">
+    <label>เบอร์โทรศัพท์</label>
+    <input type="tel" id="inp-phone" placeholder="0812345678" autocomplete="tel" inputmode="numeric" maxlength="10"/>
+  </div>
+  <button class="btn-login" id="btn-login" onclick="doLogin()">เริ่มเล่นเลย →</button>
+  <div class="login-err" id="login-err"></div>
+  <div class="login-note">ข้อมูลใช้เพื่อแสดงผลบน Leaderboard เท่านั้น<br>เล่นได้เพียงครั้งเดียวต่อเบอร์โทร</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+          <rect x="9" y="16" width="30" height="24" rx="2" fill="white" opacity="0.15"/>
+          <rect x="9" y="16" width="30" height="24" rx="2" stroke="white" stroke-width="2.5"/>
+          <polyline points="7,17 24,5 41,17" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="19" y="28" width="10" height="12" rx="1.5" fill="white" opacity="0.55"/>
+        </svg>
+      </div>
+      <div>
+        <div class="topbar-title">9 บริการจาก "UP"</div>
+        <div class="topbar-sub" id="topbar-user">—</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="stat-pill"><div class="sp-val" id="sc-timer">00:00</div><div class="sp-lbl">เวลา</div></div>
+      <div class="stat-pill"><div class="sp-val"><span id="sc-qnum">1</span><span style="color:var(--dim);font-size:.7rem">/20</span></div><div class="sp-lbl">ข้อที่</div></div>
+    </div>
+  </div>
+
+  <div class="gallows-strip">
+    <div class="gallows-mini">
+      <svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+        <line x1="8" y1="85" x2="72" y2="85" stroke="#C8DEDE" stroke-width="4" stroke-linecap="round"/>
+        <line x1="24" y1="85" x2="24" y2="5" stroke="#C8DEDE" stroke-width="4" stroke-linecap="round"/>
+        <line x1="24" y1="5" x2="54" y2="5" stroke="#C8DEDE" stroke-width="4" stroke-linecap="round"/>
+        <line x1="54" y1="5" x2="54" y2="16" stroke="#C8DEDE" stroke-width="4" stroke-linecap="round"/>
+        <line x1="54" y1="16" x2="54" y2="22" stroke="#C8DEDE" stroke-width="2" stroke-linecap="round"/>
+        <circle id="p0" cx="54" cy="30" r="8" fill="none" stroke="#E8400C" stroke-width="2" style="display:none"/>
+        <circle id="p0e1" cx="51" cy="29" r="1.2" fill="#E8400C" style="display:none"/>
+        <circle id="p0e2" cx="57" cy="29" r="1.2" fill="#E8400C" style="display:none"/>
+        <line id="p1" x1="54" y1="38" x2="54" y2="62" stroke="#E8400C" stroke-width="2" stroke-linecap="round" style="display:none"/>
+        <line id="p2" x1="54" y1="45" x2="42" y2="55" stroke="#E8400C" stroke-width="2" stroke-linecap="round" style="display:none"/>
+        <line id="p3" x1="54" y1="45" x2="66" y2="55" stroke="#E8400C" stroke-width="2" stroke-linecap="round" style="display:none"/>
+        <line id="p4a" x1="54" y1="62" x2="42" y2="76" stroke="#E8400C" stroke-width="2" stroke-linecap="round" style="display:none"/>
+        <line id="p4b" x1="54" y1="62" x2="66" y2="76" stroke="#E8400C" stroke-width="2" stroke-linecap="round" style="display:none"/>
+      </svg>
+    </div>
+    <div class="strip-right">
+      <div style="font-size:.72rem;font-weight:500;color:var(--dim)">ชีวิต</div>
+      <div class="hearts-row" id="lives-row"></div>
+      <div class="q-counter">ข้อที่ <strong id="hm-round">1</strong> / 20</div>
+      <div class="timer-display" id="timer-big">00:00</div>
+    </div>
+  </div>
+
+  <div class="game-content" id="game-content">
+    <div class="q-card">
+      <div class="q-label">
+        <svg width="13" height="13" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="7" stroke="#169b9d" stroke-width="1.5"/><text x="7.5" y="11.5" text-anchor="middle" font-size="9" fill="#169b9d" font-weight="bold" font-family="sans-serif">?</text></svg>
+        เลือกข้อที่ถูกต้องที่สุด
+      </div>
+      <div class="q-text" id="meaning-txt">—</div>
+    </div>
+    <div class="choices-list" id="choices-grid"></div>
+    <div class="answer-reveal" id="answer-reveal"></div>
+  </div>
+
+  <div id="end-screen">
+    <div id="end-icon-wrap"></div>
+    <div class="end-title" id="end-title"></div>
+    <div class="end-score" id="end-big"></div>
+    <div id="end-fan-wrap"></div>
+    <div class="summary-card">
+      <div class="sum-row"><span class="sl">⏱ เวลาที่ใช้</span><span class="sv" id="sum-time">—</span></div>
+      <div class="sum-row"><span class="sl">✅ ตอบถูก</span><span class="sv" id="sum-wins">—</span></div>
+      <div class="sum-row"><span class="sl">❤️ ชีวิตที่เหลือ</span><span class="sv" id="sum-lives">—</span></div>
+      <div class="sum-div"></div>
+      <div class="pct-wrap">
+        <div class="pct-top"><span>คะแนนรวม</span><span id="sum-pct">—</span></div>
+        <div class="pct-track"><div class="pct-fill" id="sum-bar"></div></div>
+      </div>
+    </div>
+    <div class="done-note" id="done-note"></div>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="gameover-screen">
+  <div class="overlay-box">
+    <div class="ov-emoji">💀</div>
+    <div class="ov-title" style="color:var(--orange)">หมดชีวิตแล้ว!</div>
+    <div class="ov-body" id="go-body">กำลังบันทึกผล...</div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCzk2-45-QOMuU6K2iBSJy4Z7eFYhrKa0E",
+  authDomain: "famlpp.firebaseapp.com",
+  databaseURL: "https://famlpp-default-rtdb.firebaseio.com",
+  projectId: "famlpp",
+  storageBucket: "famlpp.firebasestorage.app",
+  messagingSenderId: "520388302414",
+  appId: "1:520388302414:web:673e76dd3c40a77f96551f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── DATA ──
+const DATA = [
+  {question:"บริหารจัดการนิติบุคคลอาคารที่พักอาศัย ทั้งคอนโดมิเนียม อาคารชุด หมู่บ้านจัดสรร",choices:["LIVE UP","WORK UP","BOOK UP","PLAN UP"],correct:0},
+  {question:"บริหารจัดการอาคารสำนักงานและอาคารเชิงพาณิชย์",choices:["LIVE UP","WORK UP","SECURE UP","CLEAN UP"],correct:1},
+  {question:"บริหารงานขายและให้เช่าอสังหาริมทรัพย์ด้วยทีมผู้เชี่ยวชาญ",choices:["PLAN UP","POWER UP","BOOK UP","BUILD UP"],correct:2},
+  {question:"ที่ปรึกษาและพัฒนาโครงการอสังหาริมทรัพย์",choices:["BOOK UP","PLAN UP","FIX UP","WORK UP"],correct:1},
+  {question:"บริการรับเหมาก่อสร้าง ตกแต่ง ติดตั้งระบบประกอบอาคาร ควบคุมคุณภาพจนถึงการส่งมอบ",choices:["FIX UP","PLAN UP","POWER UP","BUILD UP"],correct:3},
+  {question:"ปรับปรุงซ่อมแซมอาคารครบวงจร ให้ทรัพย์สินพร้อมใช้งานเสมอ",choices:["FIX UP","BUILD UP","CLEAN UP","SECURE UP"],correct:0},
+  {question:"ยกระดับและบริหารระบบอาคารและการจัดการพลังงาน เพิ่มประสิทธิภาพและลดต้นทุนอย่างยั่งยืน",choices:["SECURE UP","BUILD UP","POWER UP","FIX UP"],correct:2},
+  {question:"บริหารจัดการระบบความปลอดภัยแบบบูรณาการ ผู้อยู่อาศัยและผู้ใช้อาคารรู้สึกปลอดภัยตลอด 24 ชั่วโมง",choices:["POWER UP","SECURE UP","LIVE UP","WORK UP"],correct:1},
+  {question:"บริหารจัดการงานความสะอาดแบบครบวงจร ภายใต้สภาพแวดล้อมที่ดีสำหรับทุกคน",choices:["FIX UP","BOOK UP","SECURE UP","CLEAN UP"],correct:3},
+  {question:"หากนิติบุคคลต้องการทีมงานบริหารจัดการหมู่บ้านจัดสรรหรือคอนโดมิเนียมโดยเฉพาะ ควรเลือกใช้บริการใดของ UP?",choices:["LIVE UP","PLAN UP","SECURE UP","WORK UP"],correct:0},
+  {question:"บริการใดที่มีหน้าที่หลักในการดูแลเรื่องการขายและให้เช่าอสังหาริมทรัพย์?",choices:["PLAN UP","WORK UP","BOOK UP","LIVE UP"],correct:2},
+  {question:'จุดประสงค์หลักของบริการ "POWER UP" คือข้อใด?',choices:["เพิ่มประสิทธิภาพระบบอาคารและลดต้นทุนพลังงานอย่างยั่งยืน","ซ่อมแซมอุปกรณ์ไฟฟ้าที่ชำรุดเสียหาย","ดูแลความปลอดภัยของระบบโครงสร้างอาคาร","ติดตั้งระบบไฟฟ้าและประปาในอาคารที่สร้างใหม่"],correct:0},
+  {question:"หากเจ้าของโครงการต้องการที่ปรึกษาในการพัฒนาอสังหาริมทรัพย์ตั้งแต่เริ่มต้น ควรติดต่อบริการใด?",choices:["PLAN UP","BOOK UP","WORK UP","BUILD UP"],correct:0},
+  {question:'ข้อใดอธิบายขอบเขตงานของ "BUILD UP" ได้ถูกต้องที่สุด?',choices:["ปรับปรุงซ่อมแซมส่วนที่สึกหรอของอาคารเก่า","วางแผนการก่อสร้างและออกแบบโครงการ","รับเหมาก่อสร้าง ตกแต่ง และติดตั้งระบบประกอบอาคารจนส่งมอบ","บริหารจัดการคนงานก่อสร้างในไซต์งาน"],correct:2},
+  {question:'ความแตกต่างสำคัญระหว่าง "FIX UP" และ "BUILD UP" คืออะไร?',choices:["FIX UP เน้นการซ่อมแซมให้พร้อมใช้งาน ส่วน BUILD UP เน้นการสร้างและติดตั้งระบบ","FIX UP เน้นความสวยงาม ส่วน BUILD UP เน้นความแข็งแรง","FIX UP ใช้กับที่พักอาศัย ส่วน BUILD UP ใช้กับอาคารสำนักงาน","FIX UP ทำงานตลอด 24 ชั่วโมง ส่วน BUILD UP ทำเฉพาะกลางวัน"],correct:0},
+  {question:'ข้อใดคือเป้าหมายสูงสุดของบริการ "SECURE UP"?',choices:["ตรวจสอบโครงสร้างอาคารไม่ให้ถล่ม","ป้องกันการบุกรุกพื้นที่ก่อสร้าง","ติดตั้งกล้องวงจรปิดเพียงอย่างเดียว","ให้ผู้อยู่อาศัยและผู้ใช้อาคารรู้สึกปลอดภัยตลอด 24 ชั่วโมง"],correct:3},
+  {question:'บริการ "CLEAN UP" แตกต่างจากบริการทำความสะอาดทั่วไปอย่างไรตามนิยามของ UP?',choices:["ใช้หุ่นยนต์ทำความสะอาดแทนแรงงานคน","บริหารจัดการงานความสะอาดภายใต้สภาพแวดล้อมที่ดีสำหรับทุกคน","เน้นการใช้น้ำยาทำความสะอาดที่มีราคาแพงที่สุด","ให้บริการเฉพาะห้องพักส่วนตัวเท่านั้น"],correct:1},
+  {question:"หากธุรกิจต้องการบริหารจัดการตึกคอมเพล็กซ์ที่มีทั้งสำนักงานและร้านค้า บริการใดตอบโจทย์ที่สุด?",choices:["POWER UP","BOOK UP","WORK UP","LIVE UP"],correct:2},
+  {question:'หัวใจสำคัญของบริการ "FIX UP" คืออะไร?',choices:["การเปลี่ยนเฟอร์นิเจอร์ใหม่ตามแฟชั่น","การลดค่าใช้จ่ายในการซ่อมแซมให้ต่ำที่สุด","การทำให้ทรัพย์สินพร้อมใช้งานเสมอ","การควบคุมงานก่อสร้างใหม่"],correct:2},
+  {question:'คำจำกัดความของบริการ "WORK UP" คือข้อใด?',choices:["บริการก่อสร้างสถานประกอบการขนาดเล็ก","บริหารจัดการคนทำงานในโรงงานอุตสาหกรรม","บริการจัดหางานและพนักงานต้อนรับในอาคารชุด","บริหารจัดการอาคารสำนักงานและอาคารเชิงพาณิชย์"],correct:3},
+];
+
+const LABELS=['A','B','C','D'];
+const TOTAL_Q=20;
+const MAX_WRONG=5;
+const PARTS_BY_MISS=[['p0','p0e1','p0e2'],['p1'],['p2'],['p3'],['p4a','p4b']];
+
+let currentUser=null, order=[], idx=0, over=false, wins=0, livesLeft=MAX_WRONG;
+let timerInterval=null, elapsedSec=0, timerStarted=false;
+
+function fmtTime(s){return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+// phone → safe Firebase key (replace dots etc)
+function phoneKey(p){return'u_'+p.replace(/[^0-9]/g,'');}
+
+function startTimer(){
+  if(timerStarted)return; timerStarted=true;
+  timerInterval=setInterval(()=>{
+    elapsedSec++;
+    const t=fmtTime(elapsedSec);
+    document.getElementById('sc-timer').textContent=t;
+    document.getElementById('timer-big').textContent=t;
+  },1000);
+}
+function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
+
+function buildHearts(){
+  const row=document.getElementById('lives-row'); row.innerHTML='';
+  for(let i=0;i<MAX_WRONG;i++){
+    const h=document.createElement('div');
+    h.className='heart';h.id='h'+i;h.textContent='❤️';
+    row.appendChild(h);
+  }
+}
+
+// ── LOGIN ──
+window.doLogin = async function(){
+  const name=document.getElementById('inp-name').value.trim();
+  const phone=document.getElementById('inp-phone').value.trim();
+  const err=document.getElementById('login-err');
+  const btn=document.getElementById('btn-login');
+  if(!name){err.textContent='กรุณากรอกชื่อ';return;}
+  if(!/^[0-9]{9,10}$/.test(phone)){err.textContent='เบอร์โทรไม่ถูกต้อง (9-10 หลัก)';return;}
+
+  btn.disabled=true;
+  err.className='login-err';
+  err.textContent='กำลังตรวจสอบ...';
+
+  try{
+    const snap = await get(ref(db,'scores/'+phoneKey(phone)));
+    if(snap.exists()){
+      const prev=snap.val();
+      currentUser={name:prev.name,phone};
+      err.textContent='';
+      showAlreadyPlayed(prev);
+      return;
+    }
+  }catch(e){
+    err.textContent='ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';
+    btn.disabled=false; return;
+  }
+
+  err.textContent='';
+  currentUser={name,phone};
+  showApp();
+  btn.disabled=false;
+};
+
+function showAlreadyPlayed(prev){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('topbar-user').textContent=prev.name;
+  document.getElementById('game-content').style.display='none';
+
+  const es=document.getElementById('end-screen');
+  es.classList.add('show');
+  document.getElementById('sum-time').textContent=prev.time||'—';
+  document.getElementById('sum-wins').textContent=`${prev.wins}/20 ข้อ`;
+  document.getElementById('sum-lives').textContent=`${prev.livesLeft}/5`;
+  document.getElementById('sum-pct').textContent=`${prev.score}%`;
+  document.getElementById('end-big').textContent=`${prev.wins}/20`;
+  setTimeout(()=>{document.getElementById('sum-bar').style.width=prev.score+'%';},300);
+
+  const iw=document.getElementById('end-icon-wrap');
+  const fw=document.getElementById('end-fan-wrap'); fw.innerHTML='';
+
+  if(!prev.passed){
+    iw.innerHTML=`<div class="end-icon-normal" style="background:linear-gradient(135deg,#E8400C,#ff6b35)">💀</div>`;
+    document.getElementById('end-title').textContent='เคยเล่นแล้ว (ไม่ผ่าน)';
+    fw.innerHTML=`<div class="end-fan" style="color:var(--orange);background:var(--red-bg);border-color:var(--red-bd)">ทำได้ ${prev.wins}/20 ข้อ — ไม่สามารถเล่นซ้ำได้</div>`;
+  } else {
+    iw.innerHTML=`<div class="end-icon-normal">✅</div>`;
+    document.getElementById('end-title').textContent='เคยเล่นแล้ว';
+    fw.innerHTML=`<div class="end-fan">ผลเดิม: ${prev.wins}/20 ข้อ (${prev.score}%)<br>ไม่สามารถเล่นซ้ำได้</div>`;
+  }
+  document.getElementById('done-note').textContent='';
+}
+
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('topbar-user').textContent=currentUser.name;
+  initGame();
+}
+
+function initGame(){
+  wins=0;livesLeft=MAX_WRONG;elapsedSec=0;timerStarted=false;stopTimer();
+  document.getElementById('sc-timer').textContent='00:00';
+  document.getElementById('timer-big').textContent='00:00';
+  ['p0','p0e1','p0e2','p1','p2','p3','p4a','p4b'].forEach(id=>document.getElementById(id).style.display='none');
+  buildHearts();
+  document.getElementById('end-screen').classList.remove('show');
+  document.getElementById('game-content').style.display='flex';
+  order=shuffle(DATA.map((_,i)=>i));
+  idx=0; startRound();
+}
+
+function startRound(){
+  const d=DATA[order[idx]]; over=false;
+  document.getElementById('meaning-txt').textContent=d.question;
+  document.getElementById('sc-qnum').textContent=idx+1;
+  document.getElementById('hm-round').textContent=idx+1;
+  const ar=document.getElementById('answer-reveal');
+  ar.className='answer-reveal';ar.textContent='';ar.style.cssText='';
+  renderChoices(d);
+}
+
+function renderChoices(d){
+  const grid=document.getElementById('choices-grid'); grid.innerHTML='';
+  d.choices.forEach((text,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="opt-lbl">${LABELS[i]}.</span><span>${text}</span>`;
+    btn.dataset.idx=i;
+    btn.onclick=()=>onChoice(btn,i,d);
+    grid.appendChild(btn);
+  });
+}
+
+function onChoice(btn,chosenIdx,d){
+  if(over)return;
+  startTimer();
+  if(chosenIdx===d.correct){
+    over=true;
+    btn.classList.add('correct');
+    document.querySelectorAll('.choice-btn').forEach(b=>{if(b!==btn)b.classList.add('dimmed');});
+    wins++;
+    setTimeout(()=>{idx++;if(idx>=TOTAL_Q){stopTimer();showEnd(true);}else startRound();},800);
+  } else {
+    btn.classList.add('wrong-choice');
+    document.querySelectorAll('.choice-btn').forEach(b=>{
+      if(parseInt(b.dataset.idx)===d.correct)b.classList.add('reveal-correct');
+    });
+    const missedSoFar=MAX_WRONG-livesLeft;
+    if(missedSoFar<PARTS_BY_MISS.length)
+      PARTS_BY_MISS[missedSoFar].forEach(id=>document.getElementById(id).style.display='block');
+    livesLeft--;
+    document.getElementById('h'+(MAX_WRONG-livesLeft-1)).classList.add('lost');
+    const ar=document.getElementById('answer-reveal');
+    ar.textContent=`✅ เฉลย: ${LABELS[d.correct]}. ${d.choices[d.correct]}`;
+    ar.classList.add('show');
+    if(livesLeft<=0){
+      over=true; stopTimer();
+      const score=calcScore(wins,0,elapsedSec);
+      document.getElementById('gameover-screen').classList.add('show');
+      document.getElementById('go-body').textContent='กำลังบันทึกผล...';
+      saveScore(score,fmtTime(elapsedSec),false).then(()=>{
+        document.getElementById('go-body').textContent='บันทึกแล้ว! ✅';
+        setTimeout(()=>{
+          document.getElementById('gameover-screen').classList.remove('show');
+          showEnd(false);
+        },1800);
+      });
+    } else {
+      over=true;
+      setTimeout(()=>{idx++;if(idx>=TOTAL_Q){stopTimer();showEnd(true);}else startRound();},2200);
+    }
+  }
+}
+
+function calcScore(w,l,s){
+  const acc=(w/TOTAL_Q)*60,life=(l/MAX_WRONG)*25;
+  let spd=0;
+  if(s<=60)spd=15;else if(s<=120)spd=12;else if(s<=240)spd=8;else if(s<=420)spd=4;
+  return Math.round(acc+life+spd);
+}
+
+async function saveScore(score,timeStr,passed){
+  const key=phoneKey(currentUser.phone);
+  const entry={
+    name:currentUser.name, phone:currentUser.phone,
+    score, wins, livesLeft:passed?livesLeft:0,
+    time:timeStr, elapsedSec, passed,
+    finishedAt:Date.now()
+  };
+  await set(ref(db,'scores/'+key), entry);
+}
+
+const SHIELD=`<svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#169b9d"/><stop offset="100%" stop-color="#0fc4c6"/></linearGradient></defs><path d="M60 6 L104 22 L104 64 C104 90 60 118 60 118 C60 118 16 90 16 64 L16 22 Z" fill="url(#sg)" stroke="white" stroke-width="2"/><path d="M60 18 L94 30 L94 64 C94 83 60 104 60 104 C60 104 26 83 26 64 L26 30 Z" fill="none" stroke="white" stroke-width="1.2" opacity="0.4"/><text x="60" y="72" text-anchor="middle" font-size="36" fill="white">⭐</text><text x="60" y="100" text-anchor="middle" font-size="11" fill="white" font-weight="bold" font-family="monospace" letter-spacing="1">UP</text></svg>`;
+
+async function showEnd(passed){
+  document.getElementById('game-content').style.display='none';
+  document.getElementById('end-screen').classList.add('show');
+  const score=calcScore(wins,passed?livesLeft:0,elapsedSec);
+  const timeStr=fmtTime(elapsedSec);
+  document.getElementById('sum-time').textContent=timeStr;
+  document.getElementById('sum-wins').textContent=`${wins}/20 ข้อ`;
+  document.getElementById('sum-lives').textContent=`${passed?livesLeft:0}/5`;
+  document.getElementById('sum-pct').textContent=`${score}%`;
+  document.getElementById('end-big').textContent=`${wins}/20`;
+  setTimeout(()=>{document.getElementById('sum-bar').style.width=score+'%';},200);
+
+  if(passed) await saveScore(score,timeStr,true);
+
+  const iw=document.getElementById('end-icon-wrap');
+  const fw=document.getElementById('end-fan-wrap'); fw.innerHTML='';
+  const isPerfect=(wins===TOTAL_Q&&livesLeft===MAX_WRONG);
+  const isComplete=(wins===TOTAL_Q&&livesLeft<MAX_WRONG);
+  let title='';
+
+  if(!passed){
+    iw.innerHTML=`<div class="end-icon-normal" style="background:linear-gradient(135deg,#E8400C,#ff6b35)">💀</div>`;
+    title='ไม่ผ่าน';
+    fw.innerHTML=`<div class="end-fan" style="color:var(--orange);background:var(--red-bg);border-color:var(--red-bd)">ตอบถูก ${wins}/20 ข้อ — หมดชีวิต<br>บันทึกผลแล้ว</div>`;
+  } else if(isPerfect){
+    iw.innerHTML=`<div class="shield-wrap">${SHIELD}</div>`;
+    title='🏆 Perfect!';
+    fw.innerHTML=`<div class="end-fan">🌟 คุณเป็น <strong>แฟนพันธุ์แท้ UP ตัวจริง!</strong> 🌟</div>`;
+  } else if(isComplete){
+    iw.innerHTML=`<div class="end-icon-normal">🥇</div>`;
+    title='ผ่านแล้ว!';
+    fw.innerHTML=`<div class="end-fan">💪 ผ่านครบ 20 ข้อแล้ว!</div>`;
+  } else if(wins>=14){
+    iw.innerHTML=`<div class="end-icon-normal">🥈</div>`; title='เก่งมาก!';
+  } else if(wins>=8){
+    iw.innerHTML=`<div class="end-icon-normal">🥉</div>`; title='ดีนะ!';
+  } else {
+    iw.innerHTML=`<div class="end-icon-normal">📚</div>`; title='ฝึกอีกนิด!';
+  }
+  document.getElementById('end-title').textContent=title;
+  document.getElementById('done-note').textContent='ผลถูกบันทึกขึ้น Leaderboard แล้ว ✅';
+}
+</script>
+</body>
+</html>
