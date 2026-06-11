@@ -64,6 +64,36 @@ body{background:var(--bg);font-family:'IBM Plex Sans Thai',sans-serif;color:var(
 .empty p{font-size:.9rem;line-height:1.6;}
 
 .loading{text-align:center;padding:32px;color:var(--dim);font-size:.9rem;}
+
+.btn-reset{
+  font-family:'IBM Plex Sans Thai',sans-serif;
+  font-size:.72rem;font-weight:600;
+  background:transparent;color:#aaa;
+  border:1px solid #ddd;border-radius:8px;
+  padding:5px 12px;cursor:pointer;
+  transition:all .15s;
+}
+.btn-reset:hover{background:var(--red-bg);color:var(--orange);border-color:var(--red-bd);}
+
+/* confirm dialog */
+.confirm-box{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;z-index:999;padding:20px;
+}
+.confirm-box.show{display:flex;}
+.confirm-inner{
+  background:#fff;border-radius:18px;padding:28px 24px;
+  max-width:320px;width:100%;text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,.15);
+  display:flex;flex-direction:column;gap:12px;
+}
+.confirm-inner h3{font-size:1rem;font-weight:700;color:var(--ink);}
+.confirm-inner p{font-size:.85rem;color:var(--dim);line-height:1.6;}
+.confirm-btns{display:flex;gap:8px;margin-top:4px;}
+.confirm-btns button{flex:1;font-family:'IBM Plex Sans Thai',sans-serif;font-size:.88rem;font-weight:700;border:none;border-radius:10px;padding:12px;cursor:pointer;}
+.btn-cancel{background:var(--bg);color:var(--dim);}
+.btn-confirm-del{background:var(--orange);color:#fff;}
 </style>
 </head>
 <body>
@@ -95,14 +125,29 @@ body{background:var(--bg);font-family:'IBM Plex Sans Thai',sans-serif;color:var(
 <div class="lb-wrap">
   <div class="lb-header">
     <div class="lb-title">🏅 ตารางคะแนน</div>
-    <div class="lb-updated" id="lb-updated">กำลังโหลด...</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="lb-updated" id="lb-updated">กำลังโหลด...</div>
+      <button class="btn-reset" onclick="confirmReset()">🗑 Reset</button>
+    </div>
   </div>
   <div id="lb-list"><div class="loading">กำลังโหลด...</div></div>
 </div>
 
+<!-- CONFIRM RESET -->
+<div class="confirm-box" id="confirm-box">
+  <div class="confirm-inner">
+    <h3>🗑 Reset ตารางคะแนน?</h3>
+    <p>ข้อมูลคะแนนทั้งหมดจะถูกลบถาวร<br>ไม่สามารถกู้คืนได้</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="cancelReset()">ยกเลิก</button>
+      <button class="btn-confirm-del" id="btn-del" onclick="doReset()">ลบทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCzk2-45-QOMuU6K2iBSJy4Z7eFYhrKa0E",
@@ -112,6 +157,26 @@ const firebaseConfig = {
   storageBucket: "famlpp.firebasestorage.app",
   messagingSenderId: "520388302414",
   appId: "1:520388302414:web:673e76dd3c40a77f96551f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Reset functions (exposed to window) ──
+window.confirmReset = () => document.getElementById('confirm-box').classList.add('show');
+window.cancelReset  = () => document.getElementById('confirm-box').classList.remove('show');
+window.doReset = async () => {
+  const btn = document.getElementById('btn-del');
+  btn.textContent = 'กำลังลบ...';
+  btn.disabled = true;
+  try {
+    await remove(ref(db, 'scores'));
+    document.getElementById('confirm-box').classList.remove('show');
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+  }
+  btn.textContent = 'ลบทั้งหมด';
+  btn.disabled = false;
 };
 
 const app = initializeApp(firebaseConfig);
